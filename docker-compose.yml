@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: flaskdb
+      MYSQL_USER: flaskuser
+      MYSQL_PASSWORD: StrongPass123
+    ports:
+      - "3307:3306"  # host:container
+    networks:
+      - flask-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: flask-app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: flaskuser
+      MYSQL_PASSWORD: StrongPass123
+      MYSQL_DB: flaskdb
+    networks:
+      - flask-net
+
+networks:
+  flask-net:
+    driver: bridge
